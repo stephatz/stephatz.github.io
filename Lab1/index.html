@@ -43,22 +43,24 @@
 	
 	
 	var mymap = L.map('mapid').setView([41.79116133977498, -87.59823778348704], 16);
-	L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
-		attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
-		maxZoom: 13
+	L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+		minZoom: 0,
+		maxZoom: 20,
+		attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+		ext: 'png'
 	}).addTo(mymap);
 //(10) right above here, you see you're adding this tileset and setting the max zoom level of "mymap" 
 
 //(11) this is how you define individual features on the map - a marker, a cirlce, a polygon. You could also call up a variable and point it to a hosted GIS file to load it in.
 //(12) note that each popup has preloaded text here. You could also have a variable that points attributes in a dataset to populate a popup; we will do this in the future
-	L.marker([41.79130792388482, -87.60289691534317]).addTo(mymap)
-		.bindPopup("this is also a library!").openPopup();
+	L.marker([41.7911886, -87.6030768]).addTo(mymap)
+		.bindPopup("Crerar Library.").openPopup();
 
 	L.circle([41.79215694963984, -87.60080462981331], 200, {
 		color: 'green',
 		fillColor: '#f03',
 		fillOpacity: 0.5
-	}).addTo(mymap).bindPopup("I am a circle.");
+	}).addTo(mymap).bindPopup("this is also a library!");
 	//(13)notice that, with leaflet, you can set the color of the outline by using major color names, as well as the fill color with hex codes
 
 
@@ -66,7 +68,7 @@
 		[41.79027895349174, -87.59867779654374],
 		[41.79150071588047, -87.59644738553216],
 		[41.79001876034581, -87.59778259756630],
-		[41.788461357813944, -87.59099459118622]
+		[41.791555797785996, -87.59380113843555]
 	]).addTo(mymap).bindPopup("I am a polygon.");
 	//(14)three nodes - the above code is drawing is a triangle... you can add more nodes to the polygon by separating each with a comma
 
