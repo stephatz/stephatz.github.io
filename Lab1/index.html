@@ -43,21 +43,22 @@
 	
 	
 	var mymap = L.map('mapid').setView([41.79116133977498, -87.59823778348704], 16);
-	L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
-		maxZoom: 18,
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(mymap);
+	L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+		attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+		maxZoom: 13
+	});
 //(10) right above here, you see you're adding this tileset and setting the max zoom level of "mymap" 
 
 //(11) this is how you define individual features on the map - a marker, a cirlce, a polygon. You could also call up a variable and point it to a hosted GIS file to load it in.
 //(12) note that each popup has preloaded text here. You could also have a variable that points attributes in a dataset to populate a popup; we will do this in the future
 	L.marker([41.79130792388482, -87.60289691534317]).addTo(mymap)
-		.bindPopup("<b>Hello world!</b><br />I open automatically.").openPopup();
+		.bindPopup("this is also a library!").openPopup();
 
 	L.circle([41.79215694963984, -87.60080462981331], 200, {
 		color: 'green',
 		fillColor: '#f03',
 		fillOpacity: 0.5
-	}).addTo(mymap).bindPopup("this is also a library!");
+	}).addTo(mymap).bindPopup("I am a circle.");
 	//(13)notice that, with leaflet, you can set the color of the outline by using major color names, as well as the fill color with hex codes
 
 
