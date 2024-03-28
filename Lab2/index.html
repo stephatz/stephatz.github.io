@@ -7,6 +7,8 @@
 
             <script src="https://stephatz.github.io/Lab2/provinces.js"></script>
 
+            <script src="https://stephatz.github.io/Lab2/coviddata.js"></script>
+
             <style type="text/css">
                 html, body { margin: 0; padding: 0; height: 100%; }
                 #map { min-height: 100%; }
@@ -33,6 +35,9 @@
                 }).addTo(map); //default base map
 
                 var provinces = L.geoJson(provinces).addTo(map);
+
+                var covidData = L.geoJson(covidData).addTo(map);
+
                 </script>
         </body>
         
