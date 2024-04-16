@@ -36,7 +36,17 @@
         tms: false,
         attribution: 'Created by QGIS algorithm: Generar teselas XYZ (Directorio)'
       }).addTo(map);
-	  var bus = new L.geoJson(bus).addTo(map);
+    var busIcon = L.icon({
+      iconUrl: 'https://stephatz.github.io/Lab3/bus_icon.png',
+      iconSize: [30, 30], 
+      iconAnchor: [15, 15], 
+      popupAnchor: [0, -15]
+    });
+    var bus = new L.geoJson(bus, {
+    pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, { icon: busIcon });
+    }
+}).addTo(map);
   </script>
 </body>
 </html>
