@@ -8,16 +8,85 @@
     <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
     <script src="https://js.arcgis.com/4.29/"></script>
     <script>
-        require(["esri/Map", "esri/views/MapView"], function(Map, MapView) {
-        var map = new Map({
-        basemap: "streets"
-        });
-        var view = new MapView({
-        container: "viewDiv",
-        map: map,
-        zoom: 16,
-        center: [-96.68, 40.81] // longitude, latitude – change this as needed
-        });
+        require(["esri/Map", "esri/layers/TileLayer", 
+        "esri/layers/GeoJSONLayer", "esri/views/MapView", 
+        "esri/layers/FeatureLayer", "esri/widgets/Legend"], 
+        function(Map, TileLayer, GeoJSONLayer, MapView, FeatureLayer, Legend) {
+            var thebasemap = new TileLayer({
+                url:"https://gisext.lincoln.ne.gov/arcgis/rest/services/GIS/LancoBasemap/MapServer/"
+            });
+            const renderer = {
+                type: "simple",
+                field: "CNTASSDVAL",
+                legendOptions: {title: "Assessed values in Lincoln"},
+                symbol: {
+                type: "simple-marker",
+                color: "red",
+                outline: {
+                color: "white"
+                }
+                },
+                visualVariables: [
+                {
+                type: "size",
+                field: "CNTASSDVAL",
+                stops: [
+                {
+                value: 100000,
+                size: "7px",
+                label: "Low"
+                },
+                {
+                value: 500000,
+                size: "17px",
+                label: "Medium"
+                },
+                {
+                value: 1000000,
+                size: "26px",
+                label: "High"
+                }
+                ]
+                }
+                ]
+            };
+            const url = " https://rcshepard.github.io/downtownlincoln.geojson";
+            const geojsonLayer = new GeoJSONLayer({ 
+                url: url,
+                copyright: "Stephania Tello",
+                renderer: renderer
+            });
+            var featureLayer = new FeatureLayer({
+                url:"https://gisext.lincoln.ne.gov/arcgis/rest/services/Parks/Park_Boundaries/MapServer/0"
+            });
+            var map = new Map({
+                layers: [thebasemap, geojsonLayer]
+            });
+            map.add(featureLayer);
+            var view = new MapView({
+            container: "viewDiv",
+            map: map,
+            zoom: 16,
+            center: [-96.68, 40.81] // longitude, latitude – change this as needed
+            });
+            var newfeatureLayer = new FeatureLayer({
+                url: "https://gisext.lincoln.ne.gov/arcgis/rest/services/GIS/LandUse/MapServer/1"
+            });
+            map.add(newfeatureLayer);
+            var view = new MapView({
+            container: "viewDiv",
+            map: map,
+            zoom: 16,
+            center: [-96.68, 40.81] // longitude, latitude – change this as needed
+            });
+            const legend = new Legend({
+                view:view,
+                layerInfos: [{
+                layer: geojsonLayer,
+                title: "Assignment 4 Symbols"
+                }]
+            });
+            view.ui.add(legend, "bottom-right");
         });
     </script>
     </head>
