@@ -1,122 +1,174 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>311 Resolution Time</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-    <script src="https://skeate.dev/Leaflet.timeline/examples/leaflet.timeline.js"></script>
-    <script src="https://stephatz.github.io/311ResponseTime/chi311_2023.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+<head>
+  <title>311 Resolution Time</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://skeate.dev/Leaflet.timeline/examples/leaflet.timeline.js"></script>
+  <script src="https://stephatz.github.io/311ResponseTime/chi311_2023.js"></script>
+  <script src="https://stephatz.github.io/311ResponseTime/comm_areas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
 
-    <style>x  
-      html, body {
-        margin: 0;
-        padding: 0;
-      }
-      #map {
-        width: 100vw;
-        height: 100vh;
-      }
-      .leaflet-bottom.leaflet-left {
-        width: 100%;
-      }
-      .leaflet-control-container .leaflet-timeline-controls {
-        box-sizing: border-box;
-        width: 100%;
-        margin: 0;
-        margin-bottom: 15px;
-      }
-      #search-container {
-        position: absolute;
-        top: 10px;
-        left: 50px;
-        z-index: 1000;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
-    <div id="search-container">
-      <input type="text" id="search-input" placeholder="Search by type" />
-      <button onclick="filterPoints()">Search</button>
-    </div>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      width: 100vw;
+      height: 100vh;
+    }
+    .leaflet-bottom.leaflet-left {
+      width: 100%;
+    }
+    .leaflet-control-container .leaflet-timeline-controls {
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0;
+      margin-bottom: 15px;
+    }
+    #search-container {
+      position: absolute;
+      top: 10px;
+      left: 50px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+    #community-area-dropdown {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="search-container">
+    <input type="text" id="search-input" placeholder="Search by type" />
+    <button onclick="filterPoints()">Search</button>
+    <select id="community-area-dropdown" onchange="zoomToCommunityArea()">
+      <option value="">Select Community Area</option>
+    </select>
+  </div>
 
-    <script>
-      var background = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-        maxZoom: 16
-      }); 
-      
-      var map = L.map("map", {
-        layers: [background],
-        center: new L.LatLng(41.881832, -87.623177),
-        zoom: 10,
+  <script>
+    var background = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      maxZoom: 16
+    }); 
+    
+    var map = L.map("map", {
+      layers: [background],
+      center: new L.LatLng(41.881832, -87.623177),
+      zoom: 10,
+    });
+
+    var onEachFeature = function(feature, layer) {
+      if (feature.properties) {
+        var prop = feature.properties;
+        var popup = '<h3>'+prop['SR_NUMBER']+'</h3>'+'<strong>Type: </strong>'+prop['SR_TYPE']+'<br><br>' +'<strong>Status: </strong>'+prop['STATUS']+'<br><br>' +'<strong>Open Date: </strong>'+prop['CREATED_DATE']+'<br><br>' +'<strong>Resolution Time (days): </strong>'+prop['RESOLUTION_TIME'];
+        feature.layer = layer;
+        layer.bindPopup(popup, {maxWidth: "auto"});
+      }
+    };
+
+    var blueCircleMarkers = {
+      radius: 4,
+      fillColor: "#00AEEF",
+      color: "#3978BF",
+      weight: 1,
+      opacity: 0.8,
+      fillOpacity: 0.5
+    };
+
+    var firstlayer = L.geoJson(chi311, {
+      onEachFeature: onEachFeature,
+      pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, blueCircleMarkers);
+      }
+    });
+
+    var fuse = new Fuse(chi311.features, { // Use chi311.features for Fuse.js initialization
+      keys: ['properties.SR_TYPE'],
+      threshold: 0.5,
+      includeMatches: true,
+      useExtendedSearch: true,
+    });
+
+    function filterPoints() {
+      var searchInput = document.getElementById('search-input').value;
+      var results = fuse.search(searchInput);
+      console.log('Search results:', results);
+
+      // Create a new layer with the search results
+      var filteredGeoJson = {
+        type: "FeatureCollection",
+        features: results.map(result => result.item)
+      };
+
+      // Remove the previous layer and add the new one
+      firstlayer.clearLayers();
+      firstlayer.addTo(map).addData(filteredGeoJson);
+    };
+
+    var overlays = {
+      "People": firstlayer
+    };
+
+    var baseMaps = {
+      "Historic": background
+    };
+
+    L.control.layers(null, baseMaps, {collapsed:false}).addTo(map);
+
+    // Load community areas GeoJSON and create dropdown menu
+    var communityAreasLayer;
+    var communityAreasGeoJson = commareas;
+    var communityAreasDropdown = document.getElementById('community-area-dropdown');
+
+    function onEachCommunityAreaFeature(feature, layer) {
+      layer.on('click', function() {
+        map.fitBounds(layer.getBounds());
+        layer.setStyle({ color: 'red' });
+        layer.bindPopup('<strong>Community Area: </strong>' + feature.properties.COMMUNITY).openPopup();
       });
+    }
 
-      var onEachFeature = function(feature, layer) {
-        if (feature.properties) {
-          var prop = feature.properties;
-          var popup = '<h3>'+prop['SR_NUMBER']+'</h3>'+'<strong>Type: </strong>'+prop['SR_TYPE']+'<br><br>' +'<strong>Status: </strong>'+prop['STATUS'];
-          feature.layer = layer;
-          layer.bindPopup(popup, {maxWidth: "auto"});
-        }
-      };
+    communityAreasLayer = L.geoJson(communityAreasGeoJson, {
+      onEachFeature: onEachCommunityAreaFeature
+    }).addTo(map);
 
-      var blueCircleMarkers = {
-        radius: 4,
-        fillColor: "#00AEEF",
-        color: "#3978BF",
-        weight: 1,
-        opacity: 0.8,
-        fillOpacity: 0.5
-      };
+    // Populate dropdown menu with community area names
+    communityAreasGeoJson.features.forEach(function(feature) {
+      var option = document.createElement('option');
+      option.value = feature.properties.COMMUNITY;
+      option.text = feature.properties.COMMUNITY;
+      communityAreasDropdown.add(option);
+    });
 
-      var firstlayer = L.geoJson(chi311, {
-        onEachFeature: onEachFeature,
-        pointToLayer: function(feature, latlng) {
-          return L.circleMarker(latlng, blueCircleMarkers);
-        }
-      }).addTo(map);
-
-      var fuse = new Fuse(chi311, {
-        keys: ['properties.SR_TYPE'],
-        threshold: 0.5,
-        includeMatches: true,
-        useExtendedSearch: true,
-      });
-
-      function filterPoints() {
-        var searchInput = document.getElementById('search-input').value;
-        var results = fuse.search(searchInput);
-        console.log('Search results:', results);
-
-        // Create a new layer with the search results
-        var filteredGeoJson = {
-          type: "FeatureCollection",
-          features: results.map(result => result.item)
-        };
-
-        // Remove the previous layer and add the new one
-        firstlayer.clearLayers();
-        firstlayer.addData(filteredGeoJson);
-      };
-
-      var overlays = {
-        "People": firstlayer
-      };
-
-      var baseMaps = {
-        "Historic": background
-      };
-
-      L.control.layers(null, baseMaps, {collapsed:false}).addTo(map);
-
-
-    </script>
-  </body>
+    function zoomToCommunityArea() {
+      var selectedArea = communityAreasDropdown.value;
+      if (selectedArea === "") {
+        // Zoom out to initial view
+        map.setView(new L.LatLng(41.881832, -87.623177), 10);
+        // Reset all community area colors
+        communityAreasLayer.eachLayer(function(layer) {
+          layer.setStyle({ color: '#3388ff' });
+        });
+      } else {
+        communityAreasLayer.eachLayer(function(layer) {
+          if (layer.feature.properties.COMMUNITY === selectedArea) {
+            map.fitBounds(layer.getBounds());
+            layer.setStyle({ color: 'red' });
+            layer.bindPopup('<strong>Community Area: </strong>' + selectedArea).openPopup();
+          } else {
+            layer.setStyle({ color: '#3388ff' });
+          }
+        });
+      }
+    }
+  </script>
+</body>
 </html>
